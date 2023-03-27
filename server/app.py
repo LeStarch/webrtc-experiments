@@ -7,9 +7,11 @@ def create_app():
     ice_db = {}
 
     app = Flask(__name__, static_url_path="", static_folder="../html", instance_relative_config=True)
-    
-    # Setup the GST pipeline
-    webrtc = start_pipeline()
+
+    @app.before_request
+    def log_request():
+        print(request.headers)
+        print(request.get_data())
 
     @app.route("/")
     def index():

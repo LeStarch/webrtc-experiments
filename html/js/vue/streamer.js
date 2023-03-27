@@ -45,7 +45,7 @@ export default {
             if (!this.selected?.offer) {
                 return;
             }
-            this.remote_id = this.offerer;
+            this.remote_id = this.selected.offerer;
 
             // Produce an answer
             let answer = await createAnswer(this.peer, this.selected.offer);

@@ -38,6 +38,7 @@ export function setupPeerData() {
         peer_id: peer_id,
         remote_id: null,
         ice_poll_id: null,
+        ice_candidates: []
     }
     data.ice_poll_id = setInterval(icePoller.bind(undefined, data), 200);
     peer.addEventListener("icecandidate", iceCandidateSender.bind(undefined, data.peer_id));
@@ -97,7 +98,11 @@ async function icePoller(data) {
     // Push received ICE candidates to the local peer
     await messages.forEach(async (candidate) => {
         try {
-            await data.peer.addIceCandidate(new RTCIceCandidate(candidate));
+            let candidate_string = JSON.stringify(candidate);
+            if (data.ice_candidates.indexOf(candidate_string) == -1) {
+                data.ice_candidates.push(candidate_string);
+                await data.peer.addIceCandidate(new RTCIceCandidate(candidate));
+            }
         } catch (e) {
             console.error("Failed to add ICE candidate:", e);
         }

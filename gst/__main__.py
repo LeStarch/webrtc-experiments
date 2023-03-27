@@ -2,9 +2,12 @@
 import logging
 import time
 
+import asyncio
+
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
+
 
 from .pipeline import setup_pipeline
 from .messaging import Messanger
@@ -16,15 +19,17 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.debug("Logging initialized: %d.%d", Gst.version().major, Gst.version().minor)
 
 
-
 def main():
     """ Hi Lewis!!! """
     pipeline = setup_pipeline()
-    messenger = Messanger()
+    messenger = Messanger("http://127.0.0.1:5000")
     webrtc = WebRTC(pipeline, messenger)
     pipeline.set_state(Gst.State.PLAYING)
 
-    time.sleep(10)
+    try:
+        asyncio.run(messenger.poll())
+    except asyncio.CancelledError:
+        pass
 
 
 if __name__ == "__main__":
