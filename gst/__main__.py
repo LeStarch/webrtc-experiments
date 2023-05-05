@@ -1,4 +1,4 @@
-
+import argparse
 import logging
 import time
 
@@ -19,10 +19,21 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.debug("Logging initialized: %d.%d", Gst.version().major, Gst.version().minor)
 
 
+BASE_URL = "http://127.0.0.1:5000/" 
+
+def parse_args():
+    """ Parse arguments """
+    parser = argparse.ArgumentParser(description="Host the WebRPC GStreamer backend")
+    return parser.parse_args()
+
+
 def main():
     """ Hi Lewis!!! """
+    _ = parse_args()
     pipeline = setup_pipeline()
-    messenger = Messanger("http://127.0.0.1:5000")
+    messenger = Messanger(BASE_URL)
+    print(f"[INFO] Stream: {BASE_URL}")
+    print(f"[INFO] Produce: {BASE_URL}#produce")
     webrtc = WebRTC(pipeline, messenger)
     pipeline.set_state(Gst.State.PLAYING)
 
@@ -30,7 +41,8 @@ def main():
         asyncio.run(messenger.poll())
     except asyncio.CancelledError:
         pass
-
+    except KeyboardInterrupt:
+        pass
 
 if __name__ == "__main__":
     main()
