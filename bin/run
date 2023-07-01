@@ -1,0 +1,29 @@
+#!/bin/sh
+DIRNAME=`dirname $0`
+DIRNAME=`cd ${DIRNAME}/..; pwd`
+
+# Check for installation
+if [ ! -d "${DIRNAME}/venv" ]
+then
+    echo "[ERROR] Virtual Environment not present, did you install?" 1>&2 
+    exit 1
+fi
+
+# Sourcing the virtual environment
+if [ -z "${VIRTUAL_ENV}" ]
+then
+    echo "[INFO] Sourcing Virtual Environment before executing"
+    . "${DIRNAME}/venv/bin/activate"
+fi
+export PYTHONPATH="${DIRNAME}:${PYTHONPATH}"
+mkdir -p "${DIRNAME}/logs"
+signal_trapper()
+{
+    pkill --full "python3 \-m gst"
+    pkill --full "flask \-\-app server.app"
+}
+trap signal_trapper HUP INT TERM
+
+flask --app server.app run > "${DIRNAME}/logs/flask.log" 2>& 1 &
+python3 -m gst 
+wait
