@@ -31,11 +31,11 @@ audiotestsrc is-live=true              !
 '''
 
 DEVICE_PIPELINE = f'''
-v4l2src device=/dev/video0                 !
+v4l2src                                    !
     video/x-raw,format=YUY2,framerate=15/1 !
     videoconvert                           !
     vencoder_queue.
- alsasrc device=hw:2,0 !
+alsasrc device=hw:2,0 !
     audioconvert !
     audioresample !
     aencoder_queue.
@@ -44,12 +44,13 @@ v4l2src device=/dev/video0                 !
 
 BASE_PIPELINE_DESC = f'''
 webrtcbin name={WEBRTC_ELEMENT_NAME} latency=0
-queue name=vencoder_queue ! \
-        x264enc tune=zerolatency speed-preset=ultrafast key-int-max=30 intra-refresh=true !
-        video/x-h264, profile=(string)baseline, level=(string)3.1 !
+queue name=vencoder_queue !
+        x264enc tune=zerolatency bitrate=600 speed-preset=ultrafast key-int-max=15 !
+        video/x-h264, profile=constrained-baseline !
+        h264parse !
         rtph264pay aggregate-mode=zero-latency config-interval=-1 !
+        application/x-rtp,media=video,encoding-name=H264,payload=96 !
         queue !
-        application/x-rtp,media=video,encoding-name=H264 !
         {WEBRTC_ELEMENT_NAME}.
 queue name=aencoder_queue !
         opusenc !
