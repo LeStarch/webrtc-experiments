@@ -28,7 +28,7 @@ export let streamer_template = `
                 </option>
             </select>
         </span>
-        <button v-else @click="streamRemote" :disabled="playable">Play</button>
+        <button v-else @click="streamRemote" :disabled="!playable">Play</button>
     </div>                
 </div>
 `;

@@ -17,13 +17,32 @@ then
 fi
 export PYTHONPATH="${DIRNAME}:${PYTHONPATH}"
 mkdir -p "${DIRNAME}/logs"
+
+PASS_ARGS=""
+RUN_GST=1
+for arg in "$@"
+do
+    if [ "${arg}" = "-n" ]
+    then
+        RUN_GST=0
+    else
+        PASS_ARGS="$PASS_ARGS ${arg}"
+    fi
+done
+
 signal_trapper()
 {
-    pkill --full "python3 \-m gst"
+    if [ $RUN_GST -eq 1 ]
+    then
+        pkill --full "python3 \-m gst"
+    fi
     pkill --full "flask \-\-app server.app"
 }
 trap signal_trapper HUP INT TERM
 
 flask --app server.app run > "${DIRNAME}/logs/flask.log" 2>& 1 &
-python3 -m gst 
+if [ $RUN_GST -eq 1 ]
+then
+    python3 -m gst ${PASS_ARGS}
+fi
 wait

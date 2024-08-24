@@ -27,7 +27,7 @@ export default {
     mounted() {
         Detector.singleton().addCallback(this);
         // Video handling
-        let video_element = this.$el.querySelector("#video");
+        let video_element = this.$el.querySelector(".video");
         this.peer.addEventListener('track', async (event) => {
             console.log("Detected new stream");
             const [remoteStream] = event.streams;
@@ -61,10 +61,12 @@ export default {
         },
         updateOffers(streams) {
             this.streams = streams;
-            if (this.stream != null) {
+            if ((this.stream != null) && (this.selected === initial_select_text)) {
                 let labels = this.streams.map(item => item.label);
-                if (labels.indexOf(this.stream) !== -1) {
+                let stream_index = labels.indexOf(this.stream);
+                if (stream_index !== -1) {
                     this.ready = true;
+                    this.selected = this.streams[stream_index];
                 }
             }
         }

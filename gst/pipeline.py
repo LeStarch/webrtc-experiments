@@ -7,7 +7,7 @@ webrpcbin element.
 @author lestarch
 """
 import logging
-
+from pathlib import Path
 
 import gi
 gi.require_version('Gst', '1.0')
@@ -19,11 +19,20 @@ LOGGER = logging.getLogger(__name__)
 
 WEBRTC_ELEMENT_NAME = "webrtcsender"
 
+ENCODING_PIPELINE = f'''
+queue name=vencoder_queue !
+x264enc tune=zerolatency speed-preset=ultrafast key-int-max=15 !
+    video/x-h264, profile=constrained-baseline !
+    payload_queue.
+'''
 
 TEST_PIPELINE = f'''
 videotestsrc is-live=true pattern=ball !
+    video/x-raw,width=1920,height=1080 !
     videoconvert                       !
     vencoder_queue.
+'''
+'''
 audiotestsrc is-live=true              !
     audioconvert                       !
     audioresample                      !
@@ -35,23 +44,32 @@ v4l2src                                    !
     video/x-raw,format=YUY2,framerate=15/1 !
     videoconvert                           !
     vencoder_queue.
+'''
+'''
 alsasrc device=hw:2,0 !
     audioconvert !
     audioresample !
     aencoder_queue.
 '''
 
+FILE_PIPELINE = '''
+filesrc location={} !
+    qtdemux !
+    payload_queue.
+'''
+
 
 BASE_PIPELINE_DESC = f'''
 webrtcbin name={WEBRTC_ELEMENT_NAME} latency=0
-queue name=vencoder_queue !
-        x264enc tune=zerolatency bitrate=600 speed-preset=ultrafast key-int-max=15 !
-        video/x-h264, profile=constrained-baseline !
+queue name=payload_queue !
         h264parse !
         rtph264pay aggregate-mode=zero-latency config-interval=-1 !
         application/x-rtp,media=video,encoding-name=H264,payload=96 !
         queue !
         {WEBRTC_ELEMENT_NAME}.
+'''
+
+'''
 queue name=aencoder_queue !
         opusenc !
         rtpopuspay !
@@ -60,7 +78,7 @@ queue name=aencoder_queue !
 '''
 
 
-def setup_pipeline(stream_type:str):
+def setup_pipeline(stream_type:str, file:Path):
     """ Setup the GStreamer pipline with given stream choice
     
     Initializes GSTreamer libraries, parses the pipleine with the chose source fragment, and
@@ -83,10 +101,13 @@ def setup_pipeline(stream_type:str):
     LOGGER.debug("Initializing GStreamer (%d.%d) with stream type: %s", Gst.version().major,
                  Gst.version().minor, stream_type)
     if stream_type == "test":
-        chosen_pipeline = TEST_PIPELINE
+        chosen_pipeline = f"{BASE_PIPELINE_DESC}\n{ENCODING_PIPELINE}\n{TEST_PIPELINE}"
     elif stream_type == "device":
-        chosen_pipeline = DEVICE_PIPELINE
+        chosen_pipeline = f"{BASE_PIPELINE_DESC}\n{ENCODING_PIPELINE}\n{DEVICE_PIPELINE}"
+    elif stream_type == "file":
+        chosen_pipeline = f"{BASE_PIPELINE_DESC}\n{FILE_PIPELINE.format(file)}"
     else:
         assert False, f"Invalid stream choice: {stream_type}"
-    pipeline = Gst.parse_launch(f"{BASE_PIPELINE_DESC}\n{chosen_pipeline}")
+    LOGGER.info("Running pipeline:\n%s", chosen_pipeline)
+    pipeline = Gst.parse_launch(f"{chosen_pipeline}")
     return pipeline

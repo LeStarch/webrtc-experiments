@@ -8,6 +8,7 @@ input arguments to launch the various peices.
 import argparse
 import asyncio
 import logging
+from pathlib import Path
 
 
 import gi
@@ -39,20 +40,23 @@ def parse():
                        help="Label the produced WebRTC stream set")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Enable verbose/debugging output")
-    parser.add_argument("-s", "--stream-type", choices=["test", "device"], default="test",
+    parser.add_argument("-s", "--stream-type", choices=["test", "device", "file"], default="test",
                         help="Set the type of the stream running to GStreamer")
+    parser.add_argument("-f", "--file", help="Path to file (only used with -s file)", type=Path)
     args = parser.parse_args()
-
+    if args.stream_type == "file" and (args.file is None or not args.file.exists()):
+        raise TypeError("-f must be specified and must exist")
     logging_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=logging_level)
     return args
+
 
 def main():
     """ Hi Lewis!!! """
     args = parse()
 
-    pipeline = setup_pipeline(args.stream_type)
-    messenger = Messenger(args.messaging_url, label=f"{args.label} - {args.stream_type}")
+    pipeline = setup_pipeline(args.stream_type, args.file)
+    messenger = Messenger(args.messaging_url, label=f"{args.label}")
     webrtc = WebRTC(pipeline, messenger)
     
     try:
