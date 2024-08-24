@@ -1,25 +1,31 @@
 
 import { createAnswer } from "../lib/rtc.js";
-import { setListInPlace } from "../lib/util.js";
 import { initial_select_text, streamer_template } from "./streamer-template.js"
-import { pollOffers, sendAnswer } from "../lib/fetcher.js"
+import { sendAnswer } from "../lib/fetcher.js"
 import { setupPeerData } from "./peer-helper.js"
+import {Detector} from "../lib/detector.js";
 
 export default {
     template: streamer_template,
+    props: {
+        stream: {
+            type: String,
+            default: null
+        }
+    },
     data() {
         let data = setupPeerData();
         Object.assign(data, {
-            streams: [],
+            streams: null,
             selected: initial_select_text,
             poll_id: null,
-            answered: false
+            answered: false,
+            ready: false
         });
         return data;
     },
     mounted() {
-        this.poll_id = setInterval(this.updateOffers.bind(this), 1000);
-
+        Detector.singleton().addCallback(this);
         // Video handling
         let video_element = this.$el.querySelector("#video");
         this.peer.addEventListener('track', async (event) => {
@@ -27,15 +33,13 @@ export default {
             const [remoteStream] = event.streams;
             video_element.srcObject = remoteStream;
         });
-
+    },
+    computed: {
+        playable() {
+            return this.ready && !this.answered;
+        }
     },
     methods: {
-        async updateOffers() {
-            let [success, offers] = await pollOffers();
-            if (success && offers) {
-                setListInPlace(this.streams, offers);
-            }
-        },
         async streamRemote() {
             console.assert(
                 ((this.selected != initial_select_text) && this.selected.offer),
@@ -53,6 +57,15 @@ export default {
             if (this.answered) {
                 clearInterval(this.poll_id);
                 this.poll_id = null;
+            }
+        },
+        updateOffers(streams) {
+            this.streams = streams;
+            if (this.stream != null) {
+                let labels = this.streams.map(item => item.label);
+                if (labels.indexOf(this.stream) !== -1) {
+                    this.ready = true;
+                }
             }
         }
     }

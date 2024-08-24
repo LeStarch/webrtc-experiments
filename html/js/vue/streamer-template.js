@@ -13,19 +13,22 @@ export let initial_select_text = "Select Remote Stream";
  * streams and a video tag for rendering the video from the WebRTC peer.
  */
 export let streamer_template = `
-<div>
-    <h2>Video Streaming: {{ peer_id }}</h2>
-    <video id="video" autoplay playsinline controls="false"
-        style="width: 100%; max-width: 85vw; border: 1px solid black;">
+<div style="width: 100%">
+    <h4>{{ (stream != null) ? stream : peer_id }}</h4>
+    <video class="video" autoplay playsinline controls="false"
+        style="width: 100%; border: 1px solid black;">
     </video>
     <div>
-        <label for="offer-sel">Stream Remote Video:</label>
-        <select v-model="selected" @change="streamRemote" :disabled="answered">
-            <option disabled>${initial_select_text}</option>
-            <option v-for="stream in streams" :value="stream">
-                {{ stream.label }}
-            </option>
-        </select>
+        <span v-if="stream == null">
+            <label for="offer-sel">Stream Remote Video:</label>
+            <select  v-model="selected" @change="streamRemote" :disabled="answered">
+                <option disabled>${initial_select_text}</option>
+                <option v-for="stream in streams" :value="stream">
+                    {{ stream.label }}
+                </option>
+            </select>
+        </span>
+        <button v-else @click="streamRemote" :disabled="playable">Play</button>
     </div>                
 </div>
 `;

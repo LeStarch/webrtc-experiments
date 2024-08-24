@@ -9,17 +9,10 @@
             window.stream = stream;
         </script-->
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
+        <script src="js/config.js"></script>
     </head>
     <body style="height: 100vh;">
         <div id="app"></div>
-        <template id="app-template">
-            <producer-control v-if="route == 'produce'"></producer-control>
-            <streamer-control v-else></streamer-control>
-            <!--h3>Errors:</h3>
-            <div style="flex: 1 1 auto; border: 1px solid black; background-color: aliceblue;">
-            </div-->
-        </template>
         <script type="module" src="./js/main.js"></script>
     </body>
 </html>

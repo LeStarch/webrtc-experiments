@@ -11,16 +11,21 @@
 import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 import ProducerControl from "./vue/producer.js"
 import StreamerControl from "./vue/streamer.js"
+import {Detector} from "./lib/detector.js"
+import {app_template} from "./app-template.js";
 
 // Vue JS
 let app = createApp({
-    template: "#app-template",
+    template: app_template,
     components: {ProducerControl, StreamerControl},
     data() {
-        return {route: window.location.hash.replace("#", "")};
+        return {
+            route: window.location.hash.replace("#", ""),
+            detector: Detector.singleton(),
+            configured_sources: VIDEO_SOURCES
+        };
     }
 });
-
 
 /**
  * Main function:

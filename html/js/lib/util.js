@@ -43,9 +43,12 @@ export function compareList(list_a, list_b, id) {
  * @param {Array} original_list: original list to be set to new items
  * @param {Array} new_list: new list to populate original list
  * @param {string} id: object key used as identity (passed to compareList)
+ * @return true if changed false otherwise
  */
 export function setListInPlace(original_list, new_list, id) {
     if (!compareList(original_list, new_list, id)) {
         original_list.splice(0, original_list.length, ...new_list);
+        return true;
     }
+    return false;
 }

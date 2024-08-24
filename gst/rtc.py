@@ -46,6 +46,8 @@ class WebRTC(object):
         self.offer_message = None
         self.webrtc.connect('on-negotiation-needed', self.on_negotiation_needed)
         self.webrtc.connect('on-ice-candidate', self.send_ice_candidate_message)
+        self.webrtc.connect('on-new-transceiver', self.on_new_transceiver)
+        self.webrtc.connect('on-data-channel', self.on_data_channel)
         self.messenger = messenger
 
     def on_negotiation_needed(self, element) -> None:
@@ -125,3 +127,9 @@ class WebRTC(object):
             candidate: ICE candidate message
         """
         self.messenger.send_ice(index, candidate)
+
+    def on_new_transceiver(self, _, __, ___):
+        LOGGER.warning("----- On NEW TRANSCEIVER -----")
+
+    def on_data_channel(self, _, __, ___):
+        LOGGER.warning("----- On DATA CHANNEL-----")
