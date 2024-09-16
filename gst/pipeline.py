@@ -18,8 +18,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 WEBRTC_ELEMENT_NAME = "webrtcsender"
+FILESRC_ELEMENT_NAME = "filesrc1"
+FILEQUEUE_ELEMENT_NAME = "fileq1"
 
-ENCODING_PIPELINE = f'''
+
+ENCODING_PIPELINE = '''
 queue name=vencoder_queue !
 x264enc tune=zerolatency speed-preset=ultrafast key-int-max=15 !
     video/x-h264, profile=constrained-baseline !
@@ -52,10 +55,8 @@ alsasrc device=hw:2,0 !
     aencoder_queue.
 '''
 
-FILE_PIPELINE = '''
-filesrc location={} !
-    qtdemux !
-    payload_queue.
+FILE_PIPELINE = f'''
+filesrc name={FILESRC_ELEMENT_NAME} location={{}} ! qtdemux ! decodebin ! vencoder_queue.
 '''
 
 
@@ -105,7 +106,7 @@ def setup_pipeline(stream_type:str, file:Path):
     elif stream_type == "device":
         chosen_pipeline = f"{BASE_PIPELINE_DESC}\n{ENCODING_PIPELINE}\n{DEVICE_PIPELINE}"
     elif stream_type == "file":
-        chosen_pipeline = f"{BASE_PIPELINE_DESC}\n{FILE_PIPELINE.format(file)}"
+        chosen_pipeline = f"{BASE_PIPELINE_DESC}\n{ENCODING_PIPELINE}\n{FILE_PIPELINE.format(file)}"
     else:
         assert False, f"Invalid stream choice: {stream_type}"
     LOGGER.info("Running pipeline:\n%s", chosen_pipeline)

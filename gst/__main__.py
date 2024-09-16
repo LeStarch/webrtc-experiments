@@ -19,7 +19,7 @@ from gi.repository import Gst
 from .pipeline import setup_pipeline
 from .messaging import Messenger
 from .rtc import WebRTC
-
+from .replay import ReplayFile
 
 LOGGER = logging.getLogger(__name__)
 
@@ -58,11 +58,17 @@ def main():
     pipeline = setup_pipeline(args.stream_type, args.file)
     messenger = Messenger(args.messaging_url, label=f"{args.label}")
     webrtc = WebRTC(pipeline, messenger)
-    
+    replayer = ReplayFile(pipeline)
     try:
         # Stream the pipeline and start the message polling
         pipeline.set_state(Gst.State.PLAYING)
-        asyncio.run(messenger.poll())
+
+        async def async_main():
+            await asyncio.gather(
+                messenger.poll(),
+                replayer.force_replay()
+            )
+        asyncio.run(async_main())
     except asyncio.CancelledError:
         pass
 
