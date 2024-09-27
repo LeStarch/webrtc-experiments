@@ -40,9 +40,9 @@ signal_trapper()
 }
 trap signal_trapper HUP INT TERM
 
-flask --app server.app run > "${DIRNAME}/logs/flask.log" 2>& 1 &
 if [ $RUN_GST -eq 1 ]
 then
     python3 -m gst ${PASS_ARGS}
 fi
+flask --app server.app run --host 0.0.0.0 > "${DIRNAME}/logs/flask.log" 2>& 1 &
 wait
