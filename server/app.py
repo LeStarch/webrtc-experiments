@@ -10,8 +10,9 @@ def create_app():
 
     @app.before_request
     def log_request():
-        print(request.headers)
-        print(request.get_data())
+        pass
+        #print(request.headers)
+        #print(request.get_data())
 
     @app.route("/")
     def index():
@@ -31,8 +32,6 @@ def create_app():
     @app.route("/answer/<offerer>", methods=("GET", ))
     def get_answer(offerer):
         """ GET to see current offers """
-        print(offers_db.keys())
-        print(offers_db[offerer])
         answer = offers_db.get(offerer, {}).get("answer", None)
         answerer = offers_db.get(offerer, {}).get("answerer", None)
 
@@ -51,7 +50,7 @@ def create_app():
         offerer = offer_package.get("offerer", None)
         offer = offer_package.get("offer", None)
         label = offer_package.get("label", None)
-
+        ice_db[offerer] = []
         if offerer is None or offer is None or label is None:
             return {"status": "Offer must supply 'label', 'offerer' and 'offer' data"}, 500
         offers_db[offerer] = {"offer": offer, "label": label, "answer": None, "answerer": None}

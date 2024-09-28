@@ -66,7 +66,6 @@ def main():
         async def async_main():
             await asyncio.gather(
                 messenger.poll(),
-                replayer.force_replay()
             )
         asyncio.run(async_main())
     except asyncio.CancelledError:
